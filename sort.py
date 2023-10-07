@@ -14,17 +14,7 @@
 """
 from __future__ import print_function
 
-import os
 import numpy as np
-import matplotlib
-matplotlib.use('TkAgg')
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from skimage import io
-
-import glob
-import time
-import argparse
 from filterpy.kalman import KalmanFilter
 
 np.random.seed(0)
@@ -93,7 +83,8 @@ class KalmanBoxTracker(object):
   This class represents the internal state of individual tracked objects observed as bbox.
   """
   count = 0
-  def __init__(self,bbox):
+  def __init__(self, bbox, data = None):
+    self.data = data
     """
     Initialises a tracker using initial bounding box.
     """
@@ -117,7 +108,8 @@ class KalmanBoxTracker(object):
     self.hit_streak = 0
     self.age = 0
 
-  def update(self,bbox):
+  def update(self,bbox,data=None):
+    self.data = data
     """
     Updates the state vector with observed bbox.
     """
@@ -206,7 +198,9 @@ class Sort(object):
     self.trackers = []
     self.frame_count = 0
 
-  def update(self, dets=np.empty((0, 5))):
+  def update(self, dets=np.empty((0, 5)),data = None):
+    if data is None:
+      data = [None] * len(dets)
     """
     Params:
       dets - a numpy array of detections in the format [[x1,y1,x2,y2,score],[x1,y1,x2,y2,score],...]
@@ -233,24 +227,21 @@ class Sort(object):
 
     # update matched trackers with assigned detections
     for m in matched:
-      self.trackers[m[1]].update(dets[m[0], :])
+      self.trackers[m[1]].update(dets[m[0], :], data[m[0]])
 
     # create and initialise new trackers for unmatched detections
     for i in unmatched_dets:
-        trk = KalmanBoxTracker(dets[i,:])
+        trk = KalmanBoxTracker(dets[i,:], data[i])
         self.trackers.append(trk)
     i = len(self.trackers)
     for trk in reversed(self.trackers):
-        d = trk.get_state()[0]
         if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
-          #ret.append(np.concatenate((d,[trk.id+1])).reshape(1,-1)) # +1 as MOT benchmark requires positive
-          ret.append(np.concatenate((d, [trk.id])).reshape(1, -1))
+          ret.append(trk)
         i -= 1
-        # remove dead tracklet
+        # remove dead tracker
         if(trk.time_since_update > self.max_age):
-          print("removed ", trk.get_state(), trk.id)
-          lost_tracks.append(tuple(d) + (trk.id,))
+          lost_tracks.append(trk)
           self.trackers.pop(i)
     if(len(ret)>0):
-      return np.concatenate(ret), lost_tracks
+      return ret, lost_tracks
     return np.empty((0,5))

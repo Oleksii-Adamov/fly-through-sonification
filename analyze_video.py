@@ -58,9 +58,7 @@ def get_objects_from_frame(frame, gray_frame, prev_gray_frame, prev_objects, mas
 
 def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number_of_frames = None):
     objects_by_frames = []
-    # tracked_objects = np.empty(1, dtype=object)
-    # tracked_boxes = np.empty((1, 4), dtype=np.float32)
-    tracked_boxes = {}
+    tracked_objects = {}
     small_star_size = 4
     prev_gray_frame = None
     prev_objects = {'nebulae': []}
@@ -71,7 +69,6 @@ def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number
     visualization_mask = None
     while True:
         frame_idx = frame_idx + 1
-        print(frame_idx)
         if number_of_frames is not None and frame_idx > number_of_frames:
             break
         ret, frame = video_cap.read()
@@ -106,50 +103,19 @@ def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number
         #                      math.ceil(small_star.x + r), math.ceil(small_star.y + r)
         #     detections.append([x1, y1, x2, y2, 1.0])
 
-        trackers, unmatched_trackers = tracker.update(detections)
-        print("trackers:")
+        trackers, unmatched_trackers = tracker.update(detections, objects['small_stars'])
         for track in trackers:
-            x1, y1, x2, y2, tracker_id = track
-            # if tracker_id > tracked_boxes.shape[0]:
-            #     tracked_boxes.resize((int(tracker_id)+1,4))
-            tracked_boxes[int(tracker_id)] = [x1, y1, x2, y2]
-            # print(int(tracker_id))
+            tracked_objects[int(track.id)] = track.data
 
-        # print(trackers)
-        # print("tracked boxes:")
-        # print(tracked_boxes)
-        print("unmatched_trackers")
-        print(unmatched_trackers)
         objects['small_stars_went_offscreen'] = []
         for track in unmatched_trackers:
-            x1, y1, x2, y2, tracker_id = track
-            # print(x1, y1, x2, y2, tracker_id)
+            #x1, y1, x2, y2, tracker_id = track
+            x1, y1, x2, y2 = track.get_state()[0]
             if x1 < 0 or y1 < 0 or x2 > video_w or y2 > video_h:
-                x1, y1, x2, y2 = tracked_boxes[int(tracker_id)]
-                del tracked_boxes[int(tracker_id)]
-                center_x = x1 + (x2 - x1) / 2
-                center_y = y1 + (y2 - y1) / 2
-                center_x = min(max(0, center_x), video_w-1)
-                center_y = min(max(0, center_y), video_h-1)
-                center_x_int = int(center_x)
-                center_y_int = int(center_y)
-
-                # center_x = x1 + (x2 - x1) / 2
-                # center_y = y1 + (y2 - y1) / 2
-                # center_x_int = int(center_x)
-                # center_y_int = int(center_y)
-                # print("lost ", center_x, center_y)
-                objects['small_stars_went_offscreen'].append(SmallStar(center_x, center_y, prev_gray_frame[center_y_int, center_x_int]))
-                #objects['small_stars_went_offscreen'].append(SmallStar(center_x, center_y, np.random.randint(50, 255)))
-                # objects['small_stars_went_offscreen'].append(SmallStar(center_x, center_y,
-                #                                                        original_gray_frame[center_y_int, center_x_int],
-                #                                                        RGBColor(frame[center_y_int, center_x_int, 2],
-                #                                                                 frame[center_y_int, center_x_int, 1],
-                #                                                                 frame[center_y_int, center_x_int, 0])))
-
+                objects['small_stars_went_offscreen'].append(tracked_objects[track.id])
         if visualize:
             for track in trackers:
-                x1, y1, x2, y2, tracker_id = track
+                x1, y1, x2, y2 = track.get_state()[0]
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
             for small_star in objects['small_stars_went_offscreen']:
                 cv2.circle(frame, (int(small_star.x), int(small_star.y)), small_star_size, (255, 0, 0), 1)
