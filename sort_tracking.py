@@ -1,5 +1,5 @@
 import numpy as np
-from sort.sort import Sort
+from sort import Sort
 
 
 class SortTracker:
