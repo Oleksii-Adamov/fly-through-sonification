@@ -13,7 +13,7 @@ class SmallStar:
 
     def __repr__(self):
         return "x = " + str(self.x) + ", y = " + str(self.y) + ", flux = " + str(
-            self.flux) + ", color = Not implemented"
+            self.flux) + ", color: " + str(self.color)
 
     def __str__(self):
         return self.__repr__()
