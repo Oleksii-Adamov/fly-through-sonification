@@ -15,14 +15,6 @@ class Violin(Sampler):
     def __init__(self):
         super().__init__("sonification/violin")
 
-class SampPad(Sampler):
-    def __init__(self):
-        super().__init__("sonification/pad")
-
-class Glass(Sampler):
-    def __init__(self):
-        super().__init__("sonification/glass")
-
 class Pad(Synthesizer):
     def __init__(self):
         super().__init__()
