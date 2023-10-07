@@ -6,7 +6,7 @@ import numpy as np
 from BigStar import BigStar, find_big_stars
 from Nebula import Nebula, find_nebulae
 from SmallStar import SmallStar, find_small_stars
-from deepsort_tracking import Tracker
+from sort_tracking import SortTracker
 from utils import assign_subsquare
 
 
@@ -59,7 +59,7 @@ def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number
     small_star_size = 4
     prev_gray_frame = None
     prev_objects = {'nebulae': []}
-    tracker = Tracker()
+    tracker = SortTracker()
     frame_idx = -1
     while True:
         frame_idx = frame_idx + 1
@@ -92,15 +92,12 @@ def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number
                              math.ceil(small_star.x + small_star_size), math.ceil(small_star.y + small_star_size)
             detections.append([x1, y1, x2, y2, 1.0])
 
-        trackers = tracker.update(frame, detections)
-        # print(trackers)
+        trackers, unmatched_trackers = tracker.update(frame, detections)
 
         objects['small_stars_went_offscreen'] = []
-        for track in tracker.lost_tracks:
-            bbox = track.bbox
-            x1, y1, x2, y2 = bbox
+        for track in unmatched_trackers:
+            x1, y1, x2, y2, tracker_id = track
             if x1 < 0 or y1 < 0 or x2 > video_w or y2 > video_h:
-                track.internal_track.mark_missed()
                 center_x = x1 + (x2 - x1) / 2
                 center_y = y1 + (y2 - y1) / 2
                 center_x = min(max(0, center_x), video_w)
@@ -111,12 +108,8 @@ def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number
             for track in trackers:
                 x1, y1, x2, y2, tracker_id = track
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
-            # for track in tracker.tracks:
-            #     bbox = track.bbox
-            #     x1, y1, x2, y2 = bbox
-            #     cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
-            # for small_star in objects['small_stars_went_offscreen']:
-            #     cv2.circle(frame, (int(small_star.x), int(small_star.y)), small_star_size, (255, 0, 0), 1)
+            for small_star in objects['small_stars_went_offscreen']:
+                cv2.circle(frame, (int(small_star.x), int(small_star.y)), small_star_size, (255, 0, 0), 1)
 
         prev_gray_frame = original_gray_frame
         prev_objects = objects
