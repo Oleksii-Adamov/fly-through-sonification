@@ -139,7 +139,7 @@ class SonificationTools:
         source.apply_mapping_functions(mapvals, maplims)
 
         # -------Score------------
-        score = Score([["C6", "C7"]], self.length)
+        score = Score([["C3", "C4", "C5", "C6", "C7"]], self.length)
 
         # --------Generator--------
         generator = Xylophon()
