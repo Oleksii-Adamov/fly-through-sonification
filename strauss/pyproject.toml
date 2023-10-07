@@ -1,0 +1,14 @@
+[build-system]
+requires = [
+    "ffmpeg-python",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "pychord",	
+    "scipy",
+    "setuptools>=42",
+    "tqdm",
+    "wavio",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
