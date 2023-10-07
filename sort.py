@@ -210,7 +210,7 @@ class Sort(object):
     self.trackers = []
     self.frame_count = 0
 
-  def update(self, dets=np.empty((0, 5)), data = None):
+  def update(self, dets=np.empty((0, 5)), data = None, return_data=False):
     if data is None:
       data = [None] * len(dets)
     """
@@ -221,6 +221,8 @@ class Sort(object):
 
     NOTE: The number of objects returned may differ from the number of detections provided.
     """
+    ret_info = []
+
     self.frame_count += 1
     # get predicted locations from existing trackers.
     trks = np.zeros((len(self.trackers), 5))
@@ -245,17 +247,23 @@ class Sort(object):
         trk = KalmanBoxTracker(dets[i,:], data[i])
         self.trackers.append(trk)
     i = len(self.trackers)
-    for trk in reversed(self.trackers):
+    #for trk in reversed(self.trackers):
+    for trk, data_info in zip(self.trackers, data):
         d = trk.get_state()[0]
         if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
-          ret.append(np.concatenate((d,[trk.id+1])).reshape(1,-1)) # +1 as MOT benchmark requires positive
+          # ret.append(np.concatenate((d,[trk.id+1])).reshape(1,-1)) # +1 as MOT benchmark requires positive
+          ret_info.append(np.concatenate((d, [trk.id + 1, data_info])).reshape(1, -1))
         i -= 1
         # remove dead tracklet
         if(trk.time_since_update > self.max_age):
           self.trackers.pop(i)
-    if(len(ret)>0):
-      return np.concatenate(ret), lost_tracks
-    return np.empty((0,5))
+    if return_data:
+      return np.concatenate(ret_info), lost_tracks, data
+    else:
+      return np.concatenate(ret_info), lost_tracks
+    # if(len(ret)>0):
+    #   return np.concatenate(ret), lost_tracks
+    # return np.empty((0,5))
 
 def parse_args():
     """Parse input arguments."""
@@ -272,6 +280,7 @@ def parse_args():
     parser.add_argument("--iou_threshold", help="Minimum IOU for match.", type=float, default=0.3)
     args = parser.parse_args()
     return args
+
 
 if __name__ == '__main__':
   # all train
