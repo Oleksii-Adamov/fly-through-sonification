@@ -1,15 +1,20 @@
-from deep_sort.deep_sort.tracker import Tracker as DeepSortTracker
+# from deep_sort.deep_sort.tracker import Tracker as DeepSortTracker
+# from deep_sort.tools import generate_detections as gdet
+# from deep_sort.deep_sort import nn_matching
+# from deep_sort.deep_sort.detection import Detection
+from deep_sort_realtime.deep_sort.tracker import Tracker as DeepSortTracker
 from deep_sort.tools import generate_detections as gdet
-from deep_sort.deep_sort import nn_matching
-from deep_sort.deep_sort.detection import Detection
+from deep_sort_realtime.deep_sort import nn_matching
+from deep_sort_realtime.deep_sort.detection import Detection
 import numpy as np
+# from deep_sort_realtime.deepsort_tracker import DeepSort
 
 
 class Tracker:
     tracker = None
     encoder = None
-    tracks = None
-    lost_tracks = None
+    tracks = []
+    lost_tracks = []
 
     def __init__(self):
         max_cosine_distance = 0.4
@@ -21,11 +26,13 @@ class Tracker:
         self.tracker = DeepSortTracker(metric, max_age=0)
         self.encoder = gdet.create_box_encoder(encoder_model_filename, batch_size=1)
 
+        # self.tracker = DeepSort(max_age=0)
+
     def update(self, frame, detections):
 
         if len(detections) == 0:
             self.tracker.predict()
-            self.tracker.update([])  
+            self.tracker.update([])
             self.update_tracks()
             return
 
@@ -41,6 +48,7 @@ class Tracker:
 
         self.tracker.predict()
         self.tracker.update(dets)
+        # self.tracker.update_tracks(bboxes, frame)
         self.update_tracks()
 
     def update_tracks(self):

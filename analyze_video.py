@@ -63,7 +63,7 @@ def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number
     frame_idx = -1
     while True:
         frame_idx = frame_idx + 1
-        if frame_idx > number_of_frames:
+        if number_of_frames is not None and frame_idx > number_of_frames:
             break
         ret, frame = video_cap.read()
         if not ret:
