@@ -6,13 +6,13 @@ class SortTracker:
     tracker = None
 
     def __init__(self):
-        self.tracker = Sort()
+        self.tracker = Sort(max_age=0, min_hits=0)
 
-    def update(self, frame, detections, data = None, return_data=False):
+    def update(self, detections):
 
         if len(detections) == 0:
             self.tracker.update([])
             return
         detections = np.array(detections)
-        track_bbs_ids, unmatched_trackers, data = self.tracker.update(detections, data, return_data)
-        return track_bbs_ids, unmatched_trackers, data
+        track_bbs_ids, unmatched_trackers = self.tracker.update(detections)
+        return track_bbs_ids, unmatched_trackers
