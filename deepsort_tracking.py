@@ -56,6 +56,7 @@ class Tracker:
         detections = np.array(detections)
         # print(detections)
         track_bbs_ids = self.tracker.update(detections)
+        return track_bbs_ids
 
     def update_tracks(self):
         tracks = []

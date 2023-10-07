@@ -92,7 +92,8 @@ def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number
                              math.ceil(small_star.x + small_star_size), math.ceil(small_star.y + small_star_size)
             detections.append([x1, y1, x2, y2, 1.0])
 
-        tracker.update(frame, detections)
+        trackers = tracker.update(frame, detections)
+        # print(trackers)
 
         objects['small_stars_went_offscreen'] = []
         for track in tracker.lost_tracks:
@@ -107,12 +108,15 @@ def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number
                 objects['small_stars_went_offscreen'].append(SmallStar(center_x, center_y, np.random.randint(50, 255)))
 
         if visualize:
-            for track in tracker.tracks:
-                bbox = track.bbox
-                x1, y1, x2, y2 = bbox
+            for track in trackers:
+                x1, y1, x2, y2, tracker_id = track
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
-            for small_star in objects['small_stars_went_offscreen']:
-                cv2.circle(frame, (int(small_star.x), int(small_star.y)), small_star_size, (255, 0, 0), 1)
+            # for track in tracker.tracks:
+            #     bbox = track.bbox
+            #     x1, y1, x2, y2 = bbox
+            #     cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
+            # for small_star in objects['small_stars_went_offscreen']:
+            #     cv2.circle(frame, (int(small_star.x), int(small_star.y)), small_star_size, (255, 0, 0), 1)
 
         prev_gray_frame = original_gray_frame
         prev_objects = objects
