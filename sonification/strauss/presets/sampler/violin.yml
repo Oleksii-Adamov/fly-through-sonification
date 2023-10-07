@@ -1,12 +1,11 @@
 # defaults for all sampler parameters
 
 # preset name
-name: "default"
+name: "violin"
 
 # full description
 description: >-
-  Default preset for the sampler, basic setup with no looping, and
-  an on-off volume envelope.
+  violin sampler
 
 # Numerical note length in s or "sample" for the sample length or "none"
 # to last to the end of the 
@@ -22,10 +21,10 @@ loop_end:  10.
 # define the note volume envelope applied to the samples
 # A,D,S & R correspond to 'attack', 'decay', 'sustain' and 'release'
 volume_envelope:
-  A: 0.
+  A: 0.1
   D: 0.
   S: 1.
-  R: 0.
+  R: 0.5
   Ac: 0.
   Dc: 0.
   Rc: 0.

@@ -240,7 +240,7 @@ class SonificationTools:
         # ------Sonification--------
         sonification = Sonification(score, source, generator, self.audio_system)
         sonification.render()
-        sonification.save("out/windy.wav", 0.01)
+        sonification.save("out/windy.wav", 0.005)
         sonification.notebook_display()
 
     def mix_2_wavs(self, file_path1, file_path2, file_path_export):

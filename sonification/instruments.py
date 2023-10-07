@@ -14,6 +14,7 @@ class Piano(Sampler):
 class Violin(Sampler):
     def __init__(self):
         super().__init__("sonification/violin")
+        self.load_preset("violin")
 
 class Xylophon(Sampler):
     def __init__(self):
