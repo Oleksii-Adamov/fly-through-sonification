@@ -23,3 +23,8 @@ class Pad(Synthesizer):
     def __init__(self):
         super().__init__()
         self.load_preset("nebula")
+
+class Wind(Synthesizer):
+    def __init__(self):
+        super().__init__()
+        self.load_preset("windy")

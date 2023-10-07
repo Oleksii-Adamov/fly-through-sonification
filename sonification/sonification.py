@@ -22,9 +22,9 @@ class SonificationTools:
         self.audio_system = "stereo"
         self.mapvals = {'phi': lambda x: [self.convert_x_to_phi(x_coord) for x_coord in x],
                         'theta': lambda x: [self.convert_y_to_theta(y_coord) for y_coord in x],
-                        'time': lambda x: [float(i * self.length) / float(vid_w) for i in x],
-                        'pitch': lambda x: (x-np.min(x))/(np.max(x)-np.min(x)),
-                        'volume': lambda x: (x-np.min(x))/(np.max(x)-np.min(x)),
+                        'time': lambda x: (x-0)/(length-0),
+                        'pitch': lambda x: x,
+                        'volume': lambda x: x,
                         'time_evo': lambda x: x
                         }
         self.maplims = {'phi': (0, 360),
@@ -38,7 +38,7 @@ class SonificationTools:
     def convert_x_to_phi(self, x_list):
         phi = []
         x_list_type = type(x_list)
-        if x_list_type not in [np.int32, np.int64, np.float32, np.float64]:
+        if x_list_type not in [float, np.int32, np.int64, np.float32, np.float64]:
             for x in x_list:
                 x_with_coef = x * float(180) / float(self.vid_w)
                 if x < self.vid_w / 2:
@@ -58,14 +58,14 @@ class SonificationTools:
 
     def convert_y_to_theta(self, y_list):
         y_list_type = type(y_list)
-        if y_list_type not in [np.int32, np.int64, np.float32, np.float64]:
+        if y_list_type not in [float, np.int32, np.int64, np.float32, np.float64]:
             theta = [y * float(180) / float(self.vid_h) for y in y_list]
             return np.array(theta)
         else:
             theta = y_list * float(180) / float(self.vid_h)
             return theta
 
-    def get_data_from_small_stars_in_list(self, objects) -> dict:
+    def get_data_from_small_stars_in_list(self, objects, flux_filter = 230) -> dict:
         data = dict()
 
         if type(objects) == dict:
@@ -75,8 +75,9 @@ class SonificationTools:
             smallStars = []
             t = []
             for pair in objects:
-                smallStars.append(pair[0])
-                t.append(pair[1])
+                if pair[0].flux > flux_filter:
+                    smallStars.append(pair[0])
+                    t.append(pair[1])
             data["time"] = np.array(t)
 
         data["phi"] = np.array([star.x for star in smallStars])
@@ -100,32 +101,28 @@ class SonificationTools:
 
         return data
 
-    def get_data_from_nebulas_in_list(self, list_of_nebulaes_data) -> list:
-        data = list(
-            {
-                "pitch": 1,
+    def get_data_from_nebulas_in_list(self, list_of_nebulaes_data):
+        data = {
+                "pitch": np.array([]),
                 "phi": np.array([]),
                 "theta": np.array([]),
-                "time_evo": np.array([]),
+                "time": np.array([]),
                 "volume": np.array([])
-                #"pitch_shift": np.array([])
-            }
-            for i in range(len(list_of_nebulaes_data[0].contour)))
+        }
 
-        for time_idx, nebulae in enumerate(list_of_nebulaes_data):
-            for p_idx, point in enumerate(nebulae.contour):
-                x = point[0][0]
-                y = point[0][1]
-                #data[p_idx]["pitch"] = np.append(data[p_idx]["pitch"], random.randint(1, 4))
-                data[p_idx]["phi"] = np.append(data[p_idx]["phi"], x)
-                data[p_idx]["theta"] = np.append(data[p_idx]["theta"], y)
-                data[p_idx]["time_evo"] = np.append(data[p_idx]["time_evo"], time_idx/len(list_of_nebulaes_data))
-                if nebulae.is_tracked[p_idx]:
-                    vol = 1
-                else:
-                    vol = 0
-                vol = 1
-                data[p_idx]["volume"] = np.append(data[p_idx]["volume"], vol)
+        i = 0
+        for nebulae, t in list_of_nebulaes_data:
+            for point in nebulae.contour:
+                if i % 300 == 0:
+                    x = point[0][0]
+                    y = point[0][1]
+
+                    data["pitch"] = np.append(data["pitch"], y)
+                    data["phi"] = np.append(data["phi"], x)
+                    data["theta"] = np.append(data["theta"], y)
+                    data["time"] = np.append(data["time"], t)
+                    data["volume"] = np.append(data["volume"], random.random())
+                i += 1
 
         return data
 
@@ -147,7 +144,7 @@ class SonificationTools:
         # ------Sonification--------
         sonification = Sonification(score, source, generator, self.audio_system)
         sonification.render()
-        sonification.save("out/small_stars_went_offscreen.wav", 1/200)
+        sonification.save("out/small_stars_went_offscreen.wav", 1/65)
         sonification.notebook_display()
 
     def sonificate_small_stars(self, data):
@@ -192,35 +189,59 @@ class SonificationTools:
         sonification.save("out/big_stars.wav", 1)
         sonification.notebook_display()
 
-    def sonificate_nebulae_point(self, point_data, filename="out/nebula_point.wav", chords = [["A2"]]):
+    def sonificate_nebulae_point_list(self, data, filename="out/nebula.wav"):
         # ---------Sources---------
         mapvals = self.mapvals.copy()
         maplims = self.maplims.copy()
 
-        source = Objects(point_data.keys())
-        source.fromdict(point_data)
-        source.apply_mapping_functions(map_funcs=mapvals, map_lims=maplims)
+        source = Events(data.keys())
+        source.fromdict(data)
+        source.apply_mapping_functions(mapvals, maplims)
 
         # -------Score------------
+        chords = [["A5", "C5", "E5", "C6"]]
         score = Score(chords, self.length)
 
         # --------Generator--------
-        generator = Pad()
+        generator = Violin()
 
         # ------Sonification--------
         sonification = Sonification(score, source, generator, self.audio_system)
         sonification.render()
-        sonification.save(filename, 1.0/200)
+        sonification.save(filename, 0.01)
+        sonification.notebook_display()
 
-    def sonificate_nebulae_point_list(self, point_list):
-        chords = [["C3"], ["C4"], ["C5"]]
-        for idx, point in enumerate(point_list):
-            self.sonificate_nebulae_point(point, f"out/nebula_point{idx}.wav", [chords[random.randint(0, len(chords)-1)]])
-        for i in range(1, len(point_list)):
-            file1_path = "out/nebula_point0.wav"
-            file2_path = f"out/nebula_point{i}.wav"
-            self.mix_2_wavs(file1_path, file2_path, file1_path)
-            os.remove(file2_path)
+    def sonificate_windy(self, data = None):
+        data = {
+            "phi": np.array([self.vid_w / 2 for i in range(0, int(self.length))]),
+            "theta": np.array([self.vid_h / 2 for i in range(0, int(self.length))]),
+            "time_evo": np.array([i for i in range(0, int(self.length))]),
+            "pitch": 1,
+            #"volume": np.array([1]),
+            #"time": np.array([3])
+        }
+
+        # ---------Sources---------
+        mapvals = self.mapvals.copy()
+        maplims = self.maplims.copy()
+
+
+        source = Objects(data.keys())
+        source.fromdict(data)
+        source.apply_mapping_functions(mapvals, maplims)
+
+        # -------Score------------
+        chords = [["A3"]]
+        score = Score(chords, self.length)
+
+        # --------Generator--------
+        generator = Wind()
+
+        # ------Sonification--------
+        sonification = Sonification(score, source, generator, self.audio_system)
+        sonification.render()
+        sonification.save("out/windy.wav", 0.01)
+        sonification.notebook_display()
 
     def mix_2_wavs(self, file_path1, file_path2, file_path_export):
         file1 = AudioSegment.from_wav(file_path1)
