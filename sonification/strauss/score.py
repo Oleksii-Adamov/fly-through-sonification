@@ -13,11 +13,8 @@ Todo:
     * Provide template chord charts for users 
 """
 
-from . import stream
 from . import notes
 import numpy as np
-import pychord as chrd
-import numbers
 import re
 
 class Score:

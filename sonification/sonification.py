@@ -1,16 +1,13 @@
 import os
 import random
 
-import numpy
-
-from strauss.score import Score
-from strauss.generator import Sampler
-from strauss.sources import Events, Objects
-from strauss.sonification import Sonification
+from .strauss.score import Score
+from .strauss.sources import Events, Objects
+from .strauss.sonification import Sonification
 
 import numpy as np
 from pydub import AudioSegment
-from .instruments import Mallets, Pad, Violin, SampPad, Piano, Glass
+from .instruments import *
 
 
 class SonificationTools:
@@ -71,11 +68,19 @@ class SonificationTools:
     def get_data_from_small_stars_in_list(self, objects) -> dict:
         data = dict()
 
-        smallStars = objects["small_stars"]
+        if type(objects) == dict:
+            smallStars = objects["small_stars"]
+            data["time"] = np.array([star.x for star in smallStars])
+        else:
+            smallStars = []
+            t = []
+            for pair in objects:
+                smallStars.append(pair[0])
+                t.append(pair[1])
+            data["time"] = np.array(t)
 
         data["phi"] = np.array([star.x for star in smallStars])
         data["theta"] = np.array([star.y for star in smallStars])
-        data["time"] = np.array([star.x for star in smallStars])
         data["pitch"] = np.array([star.y for star in smallStars])
         data["volume"] = np.array([star.flux for star in smallStars])
 
@@ -123,6 +128,27 @@ class SonificationTools:
                 data[p_idx]["volume"] = np.append(data[p_idx]["volume"], vol)
 
         return data
+
+    def sonificate_small_stars_went_offscreen(self, data):
+        # ---------Sources----------
+        mapvals = self.mapvals.copy()
+        maplims = self.maplims.copy()
+
+        source = Events(data.keys())
+        source.fromdict(data)
+        source.apply_mapping_functions(mapvals, maplims)
+
+        # -------Score------------
+        score = Score([["C6", "C7"]], self.length)
+
+        # --------Generator--------
+        generator = Xylophon()
+
+        # ------Sonification--------
+        sonification = Sonification(score, source, generator, self.audio_system)
+        sonification.render()
+        sonification.save("out/small_stars_went_offscreen.wav", 1/200)
+        sonification.notebook_display()
 
     def sonificate_small_stars(self, data):
         # ---------Sources----------

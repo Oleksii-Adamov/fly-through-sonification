@@ -1,5 +1,5 @@
-from strauss.generator import Sampler
-from strauss.generator import Synthesizer
+from .strauss.generator import Sampler
+from .strauss.generator import Synthesizer
 
 
 class Mallets(Sampler):
@@ -14,6 +14,10 @@ class Piano(Sampler):
 class Violin(Sampler):
     def __init__(self):
         super().__init__("sonification/violin")
+
+class Xylophon(Sampler):
+    def __init__(self):
+        super().__init__("sonification/xylophon")
 
 class Pad(Synthesizer):
     def __init__(self):

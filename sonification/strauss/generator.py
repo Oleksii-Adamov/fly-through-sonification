@@ -19,7 +19,6 @@ from . import filters
 import numpy as np
 import glob
 import copy
-import scipy
 from scipy.io import wavfile
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
@@ -476,7 +475,7 @@ class Synthesizer(Generator):
         nlength = (params['note_length']+params['volume_envelope']['R'])*samprate
 
         # generator stream (attribute of stream?)
-        sstream = stream.Stream(nlength/samprate, samprate)
+        sstream = stream.Stream(nlength / samprate, samprate)
         samples = sstream.samples
         sstream.get_sampfracs()
 
@@ -679,7 +678,7 @@ class Sampler(Generator):
             nlength = (params['note_length']+params['volume_envelope']['R'])*samprate
 
         # generator stream (TO DO: attribute of stream?)
-        sstream = stream.Stream(nlength/samprate, samprate)
+        sstream = stream.Stream(nlength / samprate, samprate)
         sstream.get_sampfracs()
         samples = sstream.samples.astype(float)
 
