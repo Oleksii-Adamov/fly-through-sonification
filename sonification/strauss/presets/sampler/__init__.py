@@ -1,9 +1,7 @@
 import glob
 import yaml
-import os
 
-#thisdir = '/'.join(__file__.split('/')[:-1])
-thisdir = os.path.dirname(os.path.abspath(__file__))
+thisdir = '/'.join(__file__.split('/')[:-1])
 
 def read_yaml(filename):
     with open(filename, 'r') as fdata:

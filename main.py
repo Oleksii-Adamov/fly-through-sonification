@@ -1,5 +1,5 @@
 import cv2
-
+import _thread
 from analyze_video import track_objects_dynamic
 
 if __name__ == '__main__':
@@ -14,6 +14,6 @@ if __name__ == '__main__':
     # , number_of_frames = 60
     objects_by_frames = track_objects_dynamic(video_cap, video_w, video_h, visualize = True)
     # print(objects_by_frames)
-    # sonify objects['small_stars_went_offscreen']
+    print(objects_by_frames[24]['small_stars_went_offscreen'])
     video_cap.release()
     cv2.destroyAllWindows()

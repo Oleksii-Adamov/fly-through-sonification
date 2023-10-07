@@ -16,16 +16,16 @@ note_length: "sample"
 looping: "off"
 # If looping, start and end point of loop in seconds.
 # If loop_end is longer than the sample, clip to end of the sample.
-loop_start: 0.7
-loop_end:  1.
+loop_start: 0.
+loop_end:  10.
 
 # define the note volume envelope applied to the samples
 # A,D,S & R correspond to 'attack', 'decay', 'sustain' and 'release'
 volume_envelope:
-  A: 0.1
-  D: 0.3
+  A: 0.
+  D: 0.
   S: 1.
-  R: 0.1
+  R: 0.
   Ac: 0.
   Dc: 0.
   Rc: 0.
@@ -77,6 +77,6 @@ volume: 1.
 pitch: 1.
 
 # pitch range and default shift in semitones
-pitch_hi: 20
+pitch_hi: 36
 pitch_lo: 0
 pitch_shift: 0.

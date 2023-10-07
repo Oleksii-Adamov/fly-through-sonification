@@ -244,7 +244,7 @@ class audio_channels:
         
 if __name__ == "__main__":
     # can use setup values, mono, stereo, 5.1, 7.1 or custom
-    setup = "stereo"
+    setup = "5.1"
     if len(sys.argv) > 1:
         # read setup type from command line argument
         setup = sys.argv[1]
