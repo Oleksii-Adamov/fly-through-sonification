@@ -50,8 +50,8 @@ def get_objects_from_frame(frame, gray_frame, prev_gray_frame, prev_objects, mas
     # for small_star in obj_dict['small_stars']:
     #     assign_subsquare(gray_frame, small_star.x, small_star.y, 10, 0)
 
-    obj_dict['nebulae'] = track_nebulae_by_contours(frame, gray_frame, prev_objects['nebulae'], prev_gray_frame)
-    # obj_dict['nebulae'] = find_nebulae(frame)
+    # obj_dict['nebulae'] = track_nebulae_by_contours(frame, gray_frame, prev_objects['nebulae'], prev_gray_frame)
+    obj_dict['nebulae'] = find_nebulae(gray_frame)
 
     return obj_dict
 
@@ -102,7 +102,6 @@ def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number
             x1, y1, x2, y2 = int(big_star.x - r), int(big_star.y - r),\
                              math.ceil(big_star.x + r), math.ceil(big_star.y + r)
             detections.append([x1, y1, x2, y2, 1.0])
-            #cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
 
         trackers, unmatched_trackers = tracker.update(detections, objects['small_stars'] + objects['big_stars'])
         for track in trackers:
@@ -110,17 +109,17 @@ def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number
 
         objects['small_stars_went_offscreen'] = []
         for track in unmatched_trackers:
-            #x1, y1, x2, y2, tracker_id = track
             x1, y1, x2, y2 = track.get_state()[0]
             if x1 < 0 or y1 < 0 or x2 > video_w or y2 > video_h:
                 objects['small_stars_went_offscreen'].append(tracked_objects[track.id])
         if visualize:
             for track in trackers:
                 x1, y1, x2, y2 = track.get_state()[0]
-                print(x1, y1, x2, y2, track.data)
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
             for small_star in objects['small_stars_went_offscreen']:
                 cv2.circle(frame, (int(small_star.x), int(small_star.y)), small_star_size, (255, 0, 0), 1)
+            for nebula in objects['nebulae']:
+                cv2.polylines(frame, [nebula.contour], True, (0, 255, 0), 2)
             if visualization_mask is None:
                 visualization_mask = np.zeros_like(frame)
             elif len(prev_objects['nebulae']) > 0:
