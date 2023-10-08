@@ -153,7 +153,7 @@ class SonificationTools:
         score = Score(chords, self.length)
 
         # --------Generator--------
-        generator = Piano()
+        generator = Xylophon()
 
         # ------Sonification--------
         sonification = Sonification(score, source, generator, self.audio_system)
@@ -174,7 +174,7 @@ class SonificationTools:
         score = Score(chords, self.length)
 
         # --------Generator--------
-        generator = Xylophon()
+        generator = Hang()
 
         # ------Sonification--------
         sonification = Sonification(score, source, generator, self.audio_system)
