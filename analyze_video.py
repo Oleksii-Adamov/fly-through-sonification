@@ -34,12 +34,12 @@ def get_objects_from_frame(frame, gray_frame, prev_gray_frame, prev_objects, mas
     if mask is None:
         mask = np.full((gray_frame.shape[0], gray_frame.shape[1]), False)
 
-    # for big_star in obj_dict['big_stars']:
-    #     for row in range(max(int(big_star.y - big_star.diameter / 2), 0),
-    #                      min(math.ceil(big_star.y + big_star.diameter / 2), gray_frame.shape[0])):
-    #         for column in range(max(int(big_star.x - big_star.diameter / 2), 0),
-    #                             min(math.ceil(big_star.x + big_star.diameter / 2), gray_frame.shape[1])):
-    #             mask[row][column] = True
+    for big_star in obj_dict['big_stars']:
+        for row in range(max(int(big_star.y - big_star.diameter / 2), 0),
+                         min(math.ceil(big_star.y + big_star.diameter / 2), gray_frame.shape[0])):
+            for column in range(max(int(big_star.x - big_star.diameter / 2), 0),
+                                min(math.ceil(big_star.x + big_star.diameter / 2), gray_frame.shape[1])):
+                mask[row][column] = True
         # assign_subsquare(mask, big_star.x, big_star.y, big_star.diameter / 2, True)
 
     obj_dict['small_stars'] = find_small_stars(gray_frame, mask)
@@ -47,8 +47,8 @@ def get_objects_from_frame(frame, gray_frame, prev_gray_frame, prev_objects, mas
     # for big_star in obj_dict['big_stars']:
     #     assign_subsquare(gray_frame, big_star.x, big_star.y, big_star.diameter / 2, 0)
 
-    for small_star in obj_dict['small_stars']:
-        assign_subsquare(gray_frame, small_star.x, small_star.y, 10, 0)
+    # for small_star in obj_dict['small_stars']:
+    #     assign_subsquare(gray_frame, small_star.x, small_star.y, 10, 0)
 
     obj_dict['nebulae'] = track_nebulae_by_contours(frame, gray_frame, prev_objects['nebulae'], prev_gray_frame)
     # obj_dict['nebulae'] = find_nebulae(frame)
@@ -97,13 +97,14 @@ def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number
             x1, y1, x2, y2 = int(small_star.x - small_star_size), int(small_star.y - small_star_size),\
                              math.ceil(small_star.x + small_star_size), math.ceil(small_star.y + small_star_size)
             detections.append([x1, y1, x2, y2, 1.0])
-        # for big_star in objects['big_stars']:
-        #     r = big_star.diameter / 2
-        #     x1, y1, x2, y2 = int(big_star.x - r), int(small_star.y - r),\
-        #                      math.ceil(small_star.x + r), math.ceil(small_star.y + r)
-        #     detections.append([x1, y1, x2, y2, 1.0])
+        for big_star in objects['big_stars']:
+            r = max(big_star.diameter / 2, small_star_size)
+            x1, y1, x2, y2 = int(big_star.x - r), int(big_star.y - r),\
+                             math.ceil(big_star.x + r), math.ceil(big_star.y + r)
+            detections.append([x1, y1, x2, y2, 1.0])
+            #cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
 
-        trackers, unmatched_trackers = tracker.update(detections, objects['small_stars'])
+        trackers, unmatched_trackers = tracker.update(detections, objects['small_stars'] + objects['big_stars'])
         for track in trackers:
             tracked_objects[int(track.id)] = track.data
 
@@ -116,6 +117,7 @@ def track_objects_dynamic(video_cap, video_w, video_h, visualize = False, number
         if visualize:
             for track in trackers:
                 x1, y1, x2, y2 = track.get_state()[0]
+                print(x1, y1, x2, y2, track.data)
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
             for small_star in objects['small_stars_went_offscreen']:
                 cv2.circle(frame, (int(small_star.x), int(small_star.y)), small_star_size, (255, 0, 0), 1)
