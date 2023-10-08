@@ -37,23 +37,11 @@ def get_objects_from_frame(frame, gray_frame, small_star_box_size, mask = None):
     return obj_dict
 
 
-def track_objects(frame, video_w, video_h, tracked_objects, tracker, is_dynamic = True, visualize = False):
+def track_objects(frame, video_w, video_h, tracked_objects, tracker, visualize = False):
     small_star_box_size = 4
     frame = cv2.resize(frame, (video_w, video_h))
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     mask = None
-    if is_dynamic:
-        mask = np.full((video_h, video_w), True)
-        for i in range(0, video_h):
-            for j in range(0, int(video_w * 0.05)):
-                mask[i][j] = False
-            for j in range(int(video_w * 0.95), video_w):
-                mask[i][j] = False
-        for j in range(0, video_w):
-            for i in range(0, int(video_h * 0.05)):
-                mask[i][j] = False
-            for i in range(int(video_h * 0.95), video_h):
-                mask[i][j] = False
 
     objects = get_objects_from_frame(frame, gray_frame, small_star_box_size, mask)
 
@@ -88,7 +76,6 @@ def track_objects(frame, video_w, video_h, tracked_objects, tracker, is_dynamic 
         for polygon in objects['nebulae'].contours:
             cv2.polylines(frame, [polygon], True, (0, 255, 0), 2)
         for planet in objects['planets']:
-            print("planet ", planet)
             cv2.circle(frame, (int(planet.x), int(planet.y)), math.ceil(planet.diameter / 2), (0, 0, 255), 2)
 
     objects['nebulae'] = objects['nebulae'].colorful_points

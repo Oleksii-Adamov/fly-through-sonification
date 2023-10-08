@@ -14,13 +14,12 @@ if __name__ == '__main__':
     tracked_objects = {}
     tracker = SortTracker()
     frames_to_go_static = 150
-    is_dynamic = True
     while True:
         ret, frame = video_cap.read()
         if not ret:
             break
 
-        objects, visualized_frame = track_objects(frame, video_w, video_h, tracked_objects, tracker, is_dynamic, visualize=True)
+        objects, visualized_frame = track_objects(frame, video_w, video_h, tracked_objects, tracker, visualize=True)
 
         if visualize:
             cv2.imshow("Visualization", visualized_frame)
