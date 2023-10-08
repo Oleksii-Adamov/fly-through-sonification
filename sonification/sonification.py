@@ -65,21 +65,17 @@ class SonificationTools:
             theta = y_list * float(180) / float(self.vid_h)
             return theta
 
-    def get_data_from_small_stars_in_list(self, objects, flux_filter = 230) -> dict:
+    def get_data_from_small_stars_in_list(self, objects, static_time, flux_filter = 230) -> dict:
         data = dict()
 
-        if type(objects) == dict:
-            smallStars = objects["small_stars"]
-            data["time"] = np.array([star.x for star in smallStars])
-        else:
-            smallStars = []
-            t = []
-            for pair in objects:
-                if pair[0].flux > flux_filter:
-                    smallStars.append(pair[0])
-                    t.append(pair[1])
-            data["time"] = np.array(t)
+        smallStars = []
+        t = []
+        for pair in objects:
+            if pair[0].flux >= flux_filter:
+                smallStars.append(pair[0])
+                t.append((pair[0].x - pair[1] + static_time) / static_time)
 
+        data["time"] = np.array(t)
         data["phi"] = np.array([star.x for star in smallStars])
         data["theta"] = np.array([star.y for star in smallStars])
         data["pitch"] = np.array([star.y for star in smallStars])
