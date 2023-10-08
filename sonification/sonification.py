@@ -83,17 +83,14 @@ class SonificationTools:
 
         return data
 
-    def get_data_from_big_stars_in_list(self, objects) -> dict:
+    def get_data_from_big_stars_in_list(self, objects, static_time) -> dict:
         data = dict()
 
-        bigStars = objects["big_stars"]
-        bigStars.append(bigStars[0])
-
-        data["phi"] = np.array([star.x for star in bigStars])
-        data["theta"] = np.array([star.y for star in bigStars])
-        data["time"] = np.array([star.x for star in bigStars])
-        data["pitch"] = np.array([star.y for star in bigStars])
-        data["volume"] = np.array([star.flux for star in bigStars])
+        data["phi"] = np.array([((star[0].x - star[1] + static_time) / static_time) for star in objects])
+        data["theta"] = np.array([star[0].y for star in objects])
+        data["time"] = np.array([star[0].x for star in objects])
+        data["pitch"] = np.array([star[0].y for star in objects])
+        data["volume"] = np.array([star[0].flux for star in objects])
 
         return data
 
@@ -143,7 +140,7 @@ class SonificationTools:
         sonification.save("out/small_stars_went_offscreen.wav", 1/65)
         sonification.notebook_display()
 
-    def sonificate_small_stars(self, data):
+    def sonificate_small_stars(self, data, chords):
         # ---------Sources----------
         mapvals = self.mapvals.copy()
         maplims = self.maplims.copy()
@@ -153,7 +150,7 @@ class SonificationTools:
         source.apply_mapping_functions(mapvals, maplims)
 
         # -------Score------------
-        score = Score(self.chords, self.length)
+        score = Score(chords, self.length)
 
         # --------Generator--------
         generator = Piano()
@@ -161,10 +158,10 @@ class SonificationTools:
         # ------Sonification--------
         sonification = Sonification(score, source, generator, self.audio_system)
         sonification.render()
-        sonification.save("out/small_stars.wav", 1)
+        sonification.save("out/static_small_stars.wav", 1)
         sonification.notebook_display()
 
-    def sonificate_big_stars(self, data):
+    def sonificate_big_stars(self, data, chords):
         # ---------Sources----------
         mapvals = self.mapvals.copy()
         maplims = self.maplims.copy()
@@ -174,15 +171,15 @@ class SonificationTools:
         source.apply_mapping_functions(mapvals, maplims)
 
         # -------Score------------
-        score = Score([["A4"], ["A5"], ["C5"], ["E5"]], self.length)
+        score = Score(chords, self.length)
 
         # --------Generator--------
-        generator = Violin()
+        generator = Xylophon()
 
         # ------Sonification--------
         sonification = Sonification(score, source, generator, self.audio_system)
         sonification.render()
-        sonification.save("out/big_stars.wav", 1)
+        sonification.save("out/static_big_stars.wav", 1)
         sonification.notebook_display()
 
     def sonificate_nebulae_point_list(self, data, filename="out/nebula.wav"):

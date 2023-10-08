@@ -16,7 +16,12 @@ def sonificate_video(objects_from_video, frames_to_go_static, vid_w, vid_h, leng
                 else:
                     static_big_stars.append([star, frame_n])
     sss = SonificationTools(vid_w, vid_h, length)
-    sss.sonificate_small_stars(sss.get_data_from_small_stars_in_list(static_small_stars, frames_to_go_static, 100))
+    chords_small_static = [["A5", "C5", "A6", "C6"]]
+    chords_big_static = [["C5", "C6", "C7"]]
+    sss.sonificate_small_stars(sss.get_data_from_small_stars_in_list(static_small_stars, frames_to_go_static, 100), chords_small_static)
+    sss.sonificate_big_stars(sss.get_data_from_big_stars_in_list(static_big_stars, frames_to_go_static), chords_big_static)
+    sss.mix_2_wavs("out/static_small_stars.wav", "out/static_big_stars.wav", "out/static_small_big_stars.wav")
+    print(sss.get_data_from_big_stars_in_list(static_big_stars, frames_to_go_static))
 
 if __name__ == '__main__':
     visualize = True
@@ -29,7 +34,7 @@ if __name__ == '__main__':
 
     tracked_objects = {}
     tracker = SortTracker()
-    frames_to_go_static = 10
+    frames_to_go_static = 100
     is_dynamic = True
     objects_from_video = []
     frame_number = 0
@@ -50,4 +55,4 @@ if __name__ == '__main__':
     video_cap.release()
     cv2.destroyAllWindows()
     #print(objects_from_video)
-    sonificate_video(objects_from_video, frames_to_go_static, video_w, video_h, 10)
+    sonificate_video(objects_from_video, frames_to_go_static, video_w, video_h, 20)
