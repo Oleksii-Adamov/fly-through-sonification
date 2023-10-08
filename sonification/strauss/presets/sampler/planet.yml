@@ -25,16 +25,16 @@ volume_envelope:
   A: 0.4
   D: 0.
   S: 0.6
-  R: 0.03
+  R: 0.1
   Ac: 0.
   Dc: 0.
   Rc: 0.
   level: 1.
   
 # Do we apply a filter, and if so specify the cutoff and filter type
-filter: "off"
+filter: "on"
 filter_type: "LPF1"
-cutoff: 1.
+cutoff: 0.5
 
 # or 'vibrato'
 pitch_lfo:
