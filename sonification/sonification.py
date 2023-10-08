@@ -136,7 +136,7 @@ class SonificationTools:
         source.apply_mapping_functions(mapvals, maplims)
 
         # -------Score------------
-        score = Score([["C3", "C4", "C5", "C6", "C7"]], self.length)
+        score = Score([["C4", "C5", "C6", "C7"]], self.length)
 
         # --------Generator--------
         generator = Xylophon()
@@ -242,6 +242,7 @@ class SonificationTools:
         sonification.render()
         sonification.save("out/windy.wav", 0.005)
         sonification.notebook_display()
+        sonification.save_combined()
 
     def mix_2_wavs(self, file_path1, file_path2, file_path_export):
         file1 = AudioSegment.from_wav(file_path1)
