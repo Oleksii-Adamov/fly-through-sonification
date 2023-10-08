@@ -71,17 +71,17 @@ def track_objects(frame, video_w, video_h, tracked_objects, tracker, is_dynamic 
     for track in trackers:
         tracked_objects[int(track.id)] = track.data
 
-    objects['small_stars_went_offscreen'] = []
+    objects['stars_went_offscreen'] = []
     for track in unmatched_trackers:
         x1, y1, x2, y2 = track.get_state()[0]
         if x1 < 0 or y1 < 0 or x2 > video_w or y2 > video_h:
-            objects['small_stars_went_offscreen'].append(tracked_objects[track.id])
+            objects['stars_went_offscreen'].append(tracked_objects[track.id])
     if visualize:
         for track in trackers:
             x1, y1, x2, y2 = track.get_state()[0]
             cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
-        for small_star in objects['small_stars_went_offscreen']:
-            cv2.circle(frame, (int(small_star.x), int(small_star.y)), small_star_box_size, (255, 0, 0), 1)
+        for star in objects['stars_went_offscreen']:
+            cv2.circle(frame, (int(star.x), int(star.y)), small_star_box_size, (255, 0, 0), 1)
         for polygon in objects['nebulae'].contours:
             cv2.polylines(frame, [polygon], True, (0, 255, 0), 2)
 
