@@ -23,7 +23,7 @@ class Star:
 
 
 def find_small_stars(image, gray_image, mask = None):
-    mean, median, std = sigma_clipped_stats(gray_image, sigma=3.0)
+    mean, median, std = sigma_clipped_stats(gray_image, sigma=3.5)
 
     # threshold = 5 or 0.65 or 3 or 1.5 or 7, fwhm = 3 or 4
     daofind = DAOStarFinder(fwhm=3, threshold=7 * std)
