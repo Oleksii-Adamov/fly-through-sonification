@@ -7,9 +7,16 @@ from RGBColor import RGBColor
 
 
 class Nebulae:
-    def __init__(self, contours = [], colorful_points = []):
-        self.contours = contours
-        self.colorful_points = colorful_points
+    def __init__(self, contours=None, colorful_points=None):
+        if colorful_points is None:
+            self.colorful_points = []
+        else:
+            self.colorful_points = colorful_points
+
+        if contours is None:
+            self.contours = []
+        else:
+            self.contours = contours
 
 
 def find_nebulae(image, gray_image):
