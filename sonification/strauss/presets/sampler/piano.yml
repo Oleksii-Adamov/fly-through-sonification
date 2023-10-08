@@ -1,7 +1,7 @@
 # defaults for all sampler parameters
 
 # preset name
-name: "default"
+name: "piano"
 
 # full description
 description: >-
@@ -22,10 +22,10 @@ loop_end:  10.
 # define the note volume envelope applied to the samples
 # A,D,S & R correspond to 'attack', 'decay', 'sustain' and 'release'
 volume_envelope:
-  A: 0.
+  A: 0.03
   D: 0.
   S: 1.
-  R: 0.
+  R: 0.01
   Ac: 0.
   Dc: 0.
   Rc: 0.
