@@ -5,9 +5,11 @@ from .strauss.score import Score
 from .strauss.sources import Events, Objects
 from .strauss.sonification import Sonification
 
+
 import numpy as np
 from pydub import AudioSegment
 from .instruments import *
+
 
 
 class SonificationTools:
@@ -90,7 +92,7 @@ class SonificationTools:
         data["theta"] = np.array([star[0].y for star in objects])
         data["time"] = np.array([((star[0].x - star[1] + static_time) / static_time) for star in objects])
         data["pitch"] = np.array([star[0].color.r for star in objects])
-        data["volume"] = np.array([star[0].flux + star[0].diameter for star in objects])
+        data["volume"] = np.array([star[0].flux + star[0].diameter*10 for star in objects])
 
         return data
 
@@ -113,7 +115,7 @@ class SonificationTools:
 
         return data
 
-    def get_data_from_nebulas_in_list(self, list_of_nebulaes_data):
+    def get_data_from_nebulas_in_list(self, list_of_nebulaes_data, step=30):
         data = {
                 "pitch": np.array([]),
                 "phi": np.array([]),
@@ -122,19 +124,15 @@ class SonificationTools:
                 "volume": np.array([])
         }
 
-        i = 0
-        for nebulae, t in list_of_nebulaes_data:
-            for point in nebulae.contour:
-                if i % 300 == 0:
-                    x = point[0][0]
-                    y = point[0][1]
-
-                    data["pitch"] = np.append(data["pitch"], y)
-                    data["phi"] = np.append(data["phi"], x)
-                    data["theta"] = np.append(data["theta"], y)
-                    data["time"] = np.append(data["time"], t)
-                    data["volume"] = np.append(data["volume"], random.random())
-                i += 1
+        for idx in range(0, len(list_of_nebulaes_data), step):
+            idx = random.randint(idx, idx + step - 1) % len(list_of_nebulaes_data)
+            point = list_of_nebulaes_data[idx][0]
+            t = list_of_nebulaes_data[idx][1]
+            data["pitch"] = np.append(data["pitch"], point.color.b*0.5 + point.y*0.5)
+            data["phi"] = np.append(data["phi"], point.x)
+            data["theta"] = np.append(data["theta"], point.y)
+            data["time"] = np.append(data["time"], t)
+            data["volume"] = np.append(data["volume"], abs(1 - (point.x/self.vid_w)**2))
 
         return data
 
@@ -201,7 +199,7 @@ class SonificationTools:
         sonification.save("out/static_big_stars.wav", volume)
         sonification.notebook_display()
 
-    def sonificate_nebulae_point_list(self, data, filename="out/nebula.wav"):
+    def sonificate_nebulae_point_list(self, data, chords, volume=0.25):
         # ---------Sources---------
         mapvals = self.mapvals.copy()
         maplims = self.maplims.copy()
@@ -211,7 +209,6 @@ class SonificationTools:
         source.apply_mapping_functions(mapvals, maplims)
 
         # -------Score------------
-        chords = [["A5", "C5", "E5", "C6"]]
         score = Score(chords, self.length)
 
         # --------Generator--------
@@ -220,7 +217,7 @@ class SonificationTools:
         # ------Sonification--------
         sonification = Sonification(score, source, generator, self.audio_system)
         sonification.render()
-        sonification.save(filename, 0.01)
+        sonification.save("out/nebulae.wav", volume)
         sonification.notebook_display()
 
     def sonificate_windy(self, data = None):

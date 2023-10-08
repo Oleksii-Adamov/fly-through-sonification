@@ -29,6 +29,11 @@ class Hang(Sampler):
         super().__init__("sonification/hang")
 
 
+class Synth(Sampler):
+    def __init__(self):
+        super().__init__("sonification/synth")
+
+
 class Pad(Synthesizer):
     def __init__(self):
         super().__init__()
