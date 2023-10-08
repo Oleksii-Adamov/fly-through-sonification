@@ -32,6 +32,7 @@ class Hang(Sampler):
 class Synth(Sampler):
     def __init__(self):
         super().__init__("sonification/synth")
+        self.load_preset("planet")
 
 
 class Pad(Synthesizer):

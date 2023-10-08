@@ -5,8 +5,9 @@ from .strauss.score import Score
 from .strauss.sources import Events, Objects
 from .strauss.sonification import Sonification
 
-
+import shutil
 import numpy as np
+import os
 from pydub import AudioSegment
 from .instruments import *
 
@@ -136,6 +137,25 @@ class SonificationTools:
 
         return data
 
+    def get_data_from_planets_in_list(self, objects, static_time) -> dict:
+        data = {
+            "pitch": np.array([]),
+            "phi": np.array([]),
+            "theta": np.array([]),
+            "time": np.array([]),
+            "volume": np.array([])
+        }
+
+        for planet, t in objects:
+            data["phi"] = np.append(data["phi"], (planet.x - t + static_time) / static_time)
+            data["theta"] = np.append(data["theta"], planet.y)
+            data["time"] = np.append(data["time"], t)
+            data["pitch"] = np.append(data["pitch"], planet.color.b)
+            data["volume"] = np.append(data["volume"], planet.diameter)
+
+        return data
+
+
     def sonificate_stars_went_offscreen(self, data, chords, volume=0.3):
         # ---------Sources----------
         mapvals = self.mapvals.copy()
@@ -253,8 +273,42 @@ class SonificationTools:
         sonification.notebook_display()
         sonification.save_combined()
 
+    def sonificate_planets(self, data, chords, volume=0.5):
+        # ---------Sources----------
+        mapvals = self.mapvals.copy()
+        maplims = self.maplims.copy()
+
+        source = Events(data.keys())
+        source.fromdict(data)
+        source.apply_mapping_functions(mapvals, maplims)
+
+        # -------Score------------
+        score = Score(chords, self.length)
+
+        # --------Generator--------
+        generator = Synth()
+
+        # ------Sonification--------
+        sonification = Sonification(score, source, generator, self.audio_system)
+        sonification.render()
+        sonification.save("out/planets.wav", volume)
+        sonification.notebook_display()
+
     def mix_2_wavs(self, file_path1, file_path2, file_path_export):
         file1 = AudioSegment.from_wav(file_path1)
         file2 = AudioSegment.from_wav(file_path2)
         mixed = file1.overlay(file2)
         mixed.export(out_f=file_path_export, format="wav")
+
+    def mix_all(self):
+        for fname in os.listdir("out/result/"):
+            os.remove("out/result/" + fname)
+
+        filenames = os.listdir("out/")
+        filenames.remove("result")
+        if len(filenames) <= 1:
+            return
+        shutil.copy("out/"+filenames[0], "out/result/")
+        os.rename("out/result/"+filenames[0], "out/result/"+"result.wav")
+        for file_n in range(1, len(filenames)):
+            self.mix_2_wavs("out/result/result.wav", "out/"+filenames[file_n], "out/result/result.wav")
