@@ -11,9 +11,6 @@ class Nebula:
 
 
 def find_nebulae(gray_image):
-    mean, median, std = sigma_clipped_stats(gray_image, sigma=3.0)
-    #gray_image = gray_image - median
-    print(median)
     # 0.05*255 20
     _, thresholded_frame = cv2.threshold(gray_image, 20, 255, cv2.THRESH_BINARY)
     # dilate ?

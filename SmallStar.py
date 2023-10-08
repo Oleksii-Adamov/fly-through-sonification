@@ -1,7 +1,8 @@
-import cv2
 import numpy as np
 from astropy.stats import sigma_clipped_stats
-from photutils.detection import DAOStarFinder, IRAFStarFinder
+from photutils.detection import DAOStarFinder
+
+from RGBColor import RGBColor
 
 
 class SmallStar:
@@ -19,10 +20,10 @@ class SmallStar:
         return self.__repr__()
 
 
-def find_small_stars(gray_image, mask = None):
+def find_small_stars(image, gray_image, mask = None):
     mean, median, std = sigma_clipped_stats(gray_image, sigma=3.0)
 
-    # original threshold = 5 or 0.65 or 3 or 1.5, fwhm = 3 or 4
+    # threshold = 5 or 0.65 or 3 or 1.5 or 7, fwhm = 3 or 4
     daofind = DAOStarFinder(fwhm=3, threshold=7 * std)
     sources = daofind(gray_image - median, mask)
     small_stars = []
@@ -30,5 +31,5 @@ def find_small_stars(gray_image, mask = None):
         positions = np.transpose((sources['xcentroid'], sources['ycentroid']))
         for i, position in enumerate(positions):
             x, y = int(round(position[0])), int(round(position[1]))
-            small_stars.append(SmallStar(x, y, sources['flux'][i]))
+            small_stars.append(SmallStar(x, y, gray_image[y, x], RGBColor(image[y, x, 2], image[y, x, 1], image[y, x, 0])))
     return small_stars
