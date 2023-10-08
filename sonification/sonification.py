@@ -12,7 +12,7 @@ import os
 from pydub import AudioSegment
 from .instruments import *
 
-def sonificate_video(objects_from_video, frames_to_go_static, vid_w, vid_h, length):
+def sonificate_video(objects_from_video, frames_to_go_static, vid_w, vid_h, length, fps= 30):
     #prepare data
 
     static_small_stars = []
@@ -55,7 +55,7 @@ def sonificate_video(objects_from_video, frames_to_go_static, vid_w, vid_h, leng
 
 
 
-    sss = SonificationTools(vid_w, vid_h, length, length*30)
+    sss = SonificationTools(vid_w, vid_h, length, length*fps)
 
     chords_small_static = [["C4", "C5", "C6"]]
     chords_big_static = [["A3", "A4", "C5"]]
