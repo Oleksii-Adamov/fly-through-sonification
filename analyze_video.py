@@ -5,23 +5,8 @@ import numpy as np
 
 from BigStar import BigStar, find_big_stars
 from Nebulae import Nebulae, find_nebulae
-from RGBColor import RGBColor
 from SmallStar import SmallStar, find_small_stars
-from sort_tracking import SortTracker
 from utils import assign_subsquare
-
-def track_nebulae_by_contours(frame, gray_frame, prev_nebulae, prev_gray_frame):
-    if len(prev_nebulae) == 0 or prev_gray_frame is None:
-        return find_nebulae(gray_frame)
-    else:
-        lk_params = dict(winSize=(5, 5),
-                         maxLevel=3,
-                         criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-        nebulae = []
-        for nebula in prev_nebulae:
-            new_points, status, err = cv2.calcOpticalFlowPyrLK(prev_gray_frame, gray_frame, nebula.contour, None, **lk_params)
-            nebulae.append(Nebulae(new_points, status))
-        return nebulae
 
 
 def get_objects_from_frame(frame, gray_frame, small_star_box_size, mask = None):
@@ -51,67 +36,57 @@ def get_objects_from_frame(frame, gray_frame, small_star_box_size, mask = None):
     return obj_dict
 
 
-def track_objects(video_cap, video_w, video_h, is_dynamic = True, visualize = False):
-    tracked_objects = {}
+def track_objects(frame, video_w, video_h, tracked_objects, tracker, is_dynamic = True, visualize = False):
     small_star_box_size = 4
-    tracker = SortTracker()
-    while True:
-        ret, frame = video_cap.read()
-        if not ret:
-            break
-        frame = cv2.resize(frame, (video_w, video_h))
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        mask = None
-        if is_dynamic:
-            mask = np.full((video_h, video_w), True)
-            for i in range(0, video_h):
-                for j in range(0, int(video_w * 0.05)):
-                    mask[i][j] = False
-                for j in range(int(video_w * 0.95), video_w):
-                    mask[i][j] = False
-            for j in range(0, video_w):
-                for i in range(0, int(video_h * 0.05)):
-                    mask[i][j] = False
-                for i in range(int(video_h * 0.95), video_h):
-                    mask[i][j] = False
+    frame = cv2.resize(frame, (video_w, video_h))
+    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    mask = None
+    if is_dynamic:
+        mask = np.full((video_h, video_w), True)
+        for i in range(0, video_h):
+            for j in range(0, int(video_w * 0.05)):
+                mask[i][j] = False
+            for j in range(int(video_w * 0.95), video_w):
+                mask[i][j] = False
+        for j in range(0, video_w):
+            for i in range(0, int(video_h * 0.05)):
+                mask[i][j] = False
+            for i in range(int(video_h * 0.95), video_h):
+                mask[i][j] = False
 
-        objects = get_objects_from_frame(frame, gray_frame, small_star_box_size, mask)
+    objects = get_objects_from_frame(frame, gray_frame, small_star_box_size, mask)
 
-        detections = []
-        for small_star in objects['small_stars']:
-            x1, y1, x2, y2 = int(small_star.x - small_star_box_size), int(small_star.y - small_star_box_size),\
-                             math.ceil(small_star.x + small_star_box_size), math.ceil(small_star.y + small_star_box_size)
-            detections.append([x1, y1, x2, y2, 1.0])
-        for big_star in objects['big_stars']:
-            r = max(big_star.diameter / 2, small_star_box_size)
-            x1, y1, x2, y2 = int(big_star.x - r), int(big_star.y - r),\
-                             math.ceil(big_star.x + r), math.ceil(big_star.y + r)
-            detections.append([x1, y1, x2, y2, 1.0])
+    detections = []
+    for small_star in objects['small_stars']:
+        x1, y1, x2, y2 = int(small_star.x - small_star_box_size), int(small_star.y - small_star_box_size),\
+                         math.ceil(small_star.x + small_star_box_size), math.ceil(small_star.y + small_star_box_size)
+        detections.append([x1, y1, x2, y2, 1.0])
+    for big_star in objects['big_stars']:
+        r = max(big_star.diameter / 2, small_star_box_size)
+        x1, y1, x2, y2 = int(big_star.x - r), int(big_star.y - r),\
+                         math.ceil(big_star.x + r), math.ceil(big_star.y + r)
+        detections.append([x1, y1, x2, y2, 1.0])
 
-        trackers, unmatched_trackers = tracker.update(detections, objects['small_stars'] + objects['big_stars'])
+    trackers, unmatched_trackers = tracker.update(detections, objects['small_stars'] + objects['big_stars'])
+    for track in trackers:
+        tracked_objects[int(track.id)] = track.data
+
+    objects['small_stars_went_offscreen'] = []
+    for track in unmatched_trackers:
+        x1, y1, x2, y2 = track.get_state()[0]
+        if x1 < 0 or y1 < 0 or x2 > video_w or y2 > video_h:
+            objects['small_stars_went_offscreen'].append(tracked_objects[track.id])
+    if visualize:
         for track in trackers:
-            tracked_objects[int(track.id)] = track.data
-
-        objects['small_stars_went_offscreen'] = []
-        for track in unmatched_trackers:
             x1, y1, x2, y2 = track.get_state()[0]
-            if x1 < 0 or y1 < 0 or x2 > video_w or y2 > video_h:
-                objects['small_stars_went_offscreen'].append(tracked_objects[track.id])
-        if visualize:
-            for track in trackers:
-                x1, y1, x2, y2 = track.get_state()[0]
-                cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
-            for small_star in objects['small_stars_went_offscreen']:
-                cv2.circle(frame, (int(small_star.x), int(small_star.y)), small_star_box_size, (255, 0, 0), 1)
-            for polygon in objects['nebulae'].contours:
-                cv2.polylines(frame, [polygon], True, (0, 255, 0), 2)
-            cv2.imshow("Video", frame)
-            # Press Q on keyboard to  exit
-            if cv2.waitKey(25) & 0xFF == ord('q'):
-                break
-        objects['nebulae'] = objects['nebulae'].colorful_points
-        yield ret, objects
-    yield False, []
+            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
+        for small_star in objects['small_stars_went_offscreen']:
+            cv2.circle(frame, (int(small_star.x), int(small_star.y)), small_star_box_size, (255, 0, 0), 1)
+        for polygon in objects['nebulae'].contours:
+            cv2.polylines(frame, [polygon], True, (0, 255, 0), 2)
+
+    objects['nebulae'] = objects['nebulae'].colorful_points
+    return objects, frame
 
 
 

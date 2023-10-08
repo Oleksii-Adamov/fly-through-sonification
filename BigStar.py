@@ -26,8 +26,8 @@ def find_big_stars(image, gray_image):
     big_stars = [None] * len(contours)
     for i, contour in enumerate(contours):
          x,y,w,h = cv2.boundingRect(cv2.approxPolyDP(contour, epsilon=4, closed=True))
-         center_x = int(round(x + w / 2))
-         center_y = int(round(y + h / 2))
+         center_x = min(int(round(x + w / 2)), gray_image.shape[1] - 1)
+         center_y = min(int(round(y + h / 2)), gray_image.shape[0] - 1)
          d = max(w, h)
          big_stars[i] = BigStar(center_x, center_y, d, gray_image[center_y, center_x],
                             RGBColor(image[center_y, center_x, 2], image[center_y, center_x, 1], image[center_y, center_x, 0]))
