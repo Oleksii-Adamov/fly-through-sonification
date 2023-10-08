@@ -20,6 +20,10 @@ class Xylophon(Sampler):
     def __init__(self):
         super().__init__("sonification/xylophon")
 
+class Hang(Sampler):
+    def __init__(self):
+        super().__init__("sonification/hang")
+
 class Pad(Synthesizer):
     def __init__(self):
         super().__init__()
